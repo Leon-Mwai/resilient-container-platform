@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ElastiCache Redis for resilient platform
+
+Parameters:
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet::Id
+
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+Resources:
+
+  RedisSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Redis access from ECS
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          SourceSecurityGroupId: !Ref ECSSecurityGroup
+
+  RedisSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Redis subnet group
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+  RedisCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      Engine: redis
+      CacheNodeType: cache.t3.micro
+      NumCacheNodes: 1
+      VpcSecurityGroupIds:
+        - !GetAtt RedisSecurityGroup.GroupId
+      CacheSubnetGroupName: !Ref RedisSubnetGroup
+
+Outputs:
+  RedisEndpoint:
+    Value: !GetAtt RedisCluster.RedisEndpoint.Address

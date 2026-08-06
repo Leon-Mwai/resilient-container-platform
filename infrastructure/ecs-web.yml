@@ -88,7 +88,7 @@ Resources:
             - ContainerPort: 8080
           Environment:
             - Name: REDIS_HOST
-              Value: localhost
+              Value: res-re-1tbne6tumvzre.nyreui.0001.use1.cache.amazonaws.com
 
   Service:
     Type: AWS::ECS::Service
